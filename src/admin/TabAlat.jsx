@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import QRCode from "qrcode";
 import { adminApi } from "../lib/adminApi";
 
 const KOSONG = { idAlat: "", namaAlat: "", kategori: "", lokasi: "", kondisi: "BAIK" };
@@ -79,22 +78,21 @@ export default function TabAlat() {
     }
   }
 
-  const handleDownloadQr = useCallback(async (idAlat, namaAlat, qrCode) => {
-    const data = qrCode || (window.location.origin + "/?id=" + idAlat);
+  const handleDownloadQr = useCallback(async (idAlat) => {
+    const target = window.location.origin + "/?id=" + idAlat;
+    const imgUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + encodeURIComponent(target);
     try {
-      const c = document.createElement("canvas");
-      await QRCode.toCanvas(c, data, { width: 300 });
-      const blob = await new Promise((r) => c.toBlob(r, "image/png"));
+      const resp = await fetch(imgUrl);
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const blob = await resp.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = "QR-" + idAlat + ".png";
-      document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (e) {
-      setError("Gagal: " + e.message);
+      setError(e.message);
     }
   }, [setError]);
 
@@ -163,7 +161,7 @@ export default function TabAlat() {
             </div>
             <div className="admin-row-actions">
               <button className="admin-link-btn" onClick={() => openEdit(item)}>Edit</button>
-              <button className="admin-link-btn" onClick={() => handleDownloadQr(item.idAlat, item.namaAlat, item.qrCode)}>Download QR</button>
+              <button className="admin-link-btn" onClick={() => handleDownloadQr(item.idAlat)}>Download QR</button>
               {item.status === "DIPINJAM" && (
                 <button className="admin-link-btn" onClick={() => handlePaksaKembali(item.idAlat)}>Paksa kembali</button>
               )}
