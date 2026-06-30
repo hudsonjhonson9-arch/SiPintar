@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import QRCode from "qrcode";
 import { adminApi } from "../lib/adminApi";
 
 const KOSONG = { idAlat: "", namaAlat: "", kategori: "", lokasi: "", kondisi: "BAIK" };
@@ -80,28 +81,18 @@ export default function TabAlat() {
 
   const handleDownloadQr = useCallback(async (idAlat, namaAlat, qrCode) => {
     const data = qrCode || (window.location.origin + "/?id=" + idAlat);
-    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(data)}`;
     try {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = qrImgUrl;
-      });
       const c = document.createElement("canvas");
-      c.width = 300; c.height = 300;
-      c.getContext("2d").drawImage(img, 0, 0);
-      c.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `QR-${idAlat}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, "image/png");
+      await QRCode.toCanvas(c, data, { width: 300 });
+      const blob = await new Promise((r) => c.toBlob(r, "image/png"));
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `QR-${idAlat}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (e) {
       setError("Gagal mengunduh QR. Coba lagi.");
     }
