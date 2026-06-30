@@ -69,7 +69,7 @@ export default function TabAlat() {
   }
 
   async function handleHapus(idAlat) {
-    if (!confirm(`Hapus alat ${idAlat}?`)) return;
+    if (!confirm("Hapus alat " + idAlat + "?")) return;
     setError("");
     try {
       await adminApi.hapusAlat(idAlat);
@@ -88,18 +88,18 @@ export default function TabAlat() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `QR-${idAlat}.png`;
+      a.download = "QR-" + idAlat + ".png";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (e) {
-      setError("Gagal mengunduh QR. Coba lagi.");
+      setError("Gagal: " + e.message);
     }
   }, [setError]);
 
   async function handlePaksaKembali(idAlat) {
-    if (!confirm(`Tandai alat ${idAlat} sebagai tersedia? (mengabaikan peminjaman saat ini)`)) return;
+    if (!confirm("Tandai alat " + idAlat + " sebagai tersedia? (mengabaikan peminjaman saat ini)")) return;
     setError("");
     try {
       await adminApi.editAlat(idAlat, { status: "TERSEDIA" });
@@ -157,7 +157,7 @@ export default function TabAlat() {
                   </p>
                 )}
               </div>
-              <span className={`admin-badge ${item.status === "DIPINJAM" ? "admin-badge--busy" : "admin-badge--free"}`}>
+              <span className={"admin-badge " + (item.status === "DIPINJAM" ? "admin-badge--busy" : "admin-badge--free")}>
                 {item.status === "DIPINJAM" ? "Dipinjam" : "Tersedia"}
               </span>
             </div>
